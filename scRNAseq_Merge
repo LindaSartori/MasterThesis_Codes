@@ -7,12 +7,13 @@ library(Matrix)
 library(patchwork)
 library(ggplot2)
 library(RColorBrewer)
+setwd("")
 
 ##### MICROGLIA SUBSET LOADING ####
-load("C:/Users/au764493/Desktop/RStudio_Analysis/scRNAseq_RFiles_Robj/TL9_RFiles_Robj/TL9_Microglia.RData")
-load("C:/Users/au764493/Desktop/RStudio_Analysis/scRNAseq_RFiles_Robj/TL10_RFiles_Robj/TL10_Microglia.RData")
-load("C:/Users/au764493/Desktop/RStudio_Analysis/scRNAseq_RFiles_Robj/TL11_RFiles_Robj/TL11_Microglia.RData")
-load("C:/Users/au764493/Desktop/RStudio_Analysis/scRNAseq_RFiles_Robj/TL12_RFiles_Robj/TL12_Microglia.RData")
+load("TL9_Microglia.RData")
+load("TL10_Microglia.RData")
+load("TL11_Microglia.RData")
+load("TL12_Microglia.RData")
 
 ##### MERGE #####
 
@@ -32,7 +33,7 @@ MERGE_6M <- PrepSCTFindMarkers(MERGE_6M)
 markers <- FindAllMarkers(MERGE_6M, test.use = "wilcox", logfc.threshold = 0.5, 
                           min.pct = 0.2, verbose = T)
 
-write.csv(markers, file = "C:/Users/au764493/Desktop/RStudio_Analysis/scRNAseq_MicrogliaMarkers/6MO_MicrogliaMerge/6MO_MicrogliaMerge.csv")
+write.csv(markers, file = "6MO_MicrogliaMerge.csv")
 
 ##### CLUSTERS IDENTITIES #####
 cluster.id <- c("Artifact", "Microglia", "Microglia", "Microglia", 
@@ -59,7 +60,7 @@ DimPlot(MERGE_6M, reduction = "umap", pt.size= 0.5, label = TRUE, label.size=4.5
 markers <- FindAllMarkers(MERGE_6M, test.use = "wilcox",
                           logfc.threshold = 0.2, verbose = T)
 
-write.csv(markers, file = "C:/Users/au764493/Desktop/RStudio_Analysis/scRNAseq_MicrogliaMarkers/6MO_MicrogliaMerge/6MO_MicrogliaMerge_FIRSTCLEAN.csv")
+write.csv(markers, file = "6MO_MicrogliaMerge_FIRSTCLEAN.csv")
 
 ##### CLUSTERS IDENTITIES #####
 cluster.id <- c("Microglia", "Microglia", "Microglia", "Artifact", "Epithelial cells", 
@@ -86,4 +87,4 @@ DimPlot(MERGE_6M, reduction = "umap", pt.size= 0.5, label = TRUE, label.size = 4
 markers <- FindAllMarkers(MERGE_6M, test.use = "wilcox",
                           logfc.threshold = 0.2, verbose = T)
 
-write.csv(markers, file = "C:/Users/sarto/OneDrive/Desktop/scRNAseq/SECONDCLEAN.csv")
+write.csv(markers, file = "6MO_MicrogliaMerge_SECONDCLEAN.csv")
