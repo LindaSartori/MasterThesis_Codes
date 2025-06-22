@@ -1,0 +1,89 @@
+##### LIBRARIES #####
+library(dplyr)
+library(Seurat)
+library(harmony)
+library(cowplot)
+library(Matrix)
+library(patchwork)
+library(ggplot2)
+library(RColorBrewer)
+
+##### MICROGLIA SUBSET LOADING ####
+load("C:/Users/au764493/Desktop/RStudio_Analysis/scRNAseq_RFiles_Robj/TL9_RFiles_Robj/TL9_Microglia.RData")
+load("C:/Users/au764493/Desktop/RStudio_Analysis/scRNAseq_RFiles_Robj/TL10_RFiles_Robj/TL10_Microglia.RData")
+load("C:/Users/au764493/Desktop/RStudio_Analysis/scRNAseq_RFiles_Robj/TL11_RFiles_Robj/TL11_Microglia.RData")
+load("C:/Users/au764493/Desktop/RStudio_Analysis/scRNAseq_RFiles_Robj/TL12_RFiles_Robj/TL12_Microglia.RData")
+
+##### MERGE #####
+
+MERGE_6M <- merge( x = TL9, y = c(TL10, TL11, TL12))
+
+MERGE_6M <- SCTransform(MERGE_6M, vars.to.regress = c("nCount_RNA", "nFeature_RNA"))
+MERGE_6M <- RunPCA(MERGE_6M, assay = "SCT", verbose = FALSE)
+MERGE_6M <- RunHarmony(MERGE_6M, group.by.vars = "orig.ident", 
+                     assay.use = "SCT", plot.convergence = T)
+MERGE_6M <- RunUMAP(MERGE_6M, reduction = "harmony", dims = 1:30)
+MERGE_6M <- FindNeighbors(MERGE_6M, dims = 1:20)
+MERGE_6M <- FindClusters(MERGE_6M, resolution = 0.4)
+
+DimPlot(MERGE_6M, reduction = "umap", pt.size= 0.5, label = TRUE)
+
+MERGE_6M <- PrepSCTFindMarkers(MERGE_6M)
+markers <- FindAllMarkers(MERGE_6M, test.use = "wilcox", logfc.threshold = 0.5, 
+                          min.pct = 0.2, verbose = T)
+
+write.csv(markers, file = "C:/Users/au764493/Desktop/RStudio_Analysis/scRNAseq_MicrogliaMarkers/6MO_MicrogliaMerge/6MO_MicrogliaMerge.csv")
+
+##### CLUSTERS IDENTITIES #####
+cluster.id <- c("Artifact", "Microglia", "Microglia", "Microglia", 
+                "Microglia", "Microglia", "Microglia", "Oligodendrocytes", "Astrocytes", 
+                "Immune cells", "Endothelial cells", "Mixed", "Microglia", "Immune cells")
+names(cluster.id) <- levels(MERGE_6M)
+MERGE_6M <- RenameIdents(MERGE_6M, cluster.id)
+DimPlot(MERGE_6M, reduction = "umap", pt.size= 0.5, label = TRUE)
+
+##### SUBSET MICROGLIA, REMOVE OTHER POPULATIONS ##### 
+
+MERGE_6M <- subset(MERGE_6M, idents = c("Microglia", "Immune cells"))
+
+MERGE_6M <- SCTransform(MERGE_6M, vars.to.regress = c("nCount_RNA", "nFeature_RNA"),
+                   variable.features.n = 500, verbose = FALSE)
+MERGE_6M <- RunPCA(MERGE_6M, verbose = FALSE)
+ElbowPlot(MERGE_6M, ndims = 50, reduction = "pca")
+MERGE_6M <- RunUMAP(MERGE_6M, dims = 1:30, n.neighbors= 50, min.dist= 0.01, 
+               spread =1, verbose = FALSE)
+MERGE_6M <- FindNeighbors(MERGE_6M, dims = 1:10)
+MERGE_6M <- FindClusters(MERGE_6M, resolution = 0.3)
+
+DimPlot(MERGE_6M, reduction = "umap", pt.size= 0.5, label = TRUE, label.size=4.5)
+markers <- FindAllMarkers(MERGE_6M, test.use = "wilcox",
+                          logfc.threshold = 0.2, verbose = T)
+
+write.csv(markers, file = "C:/Users/au764493/Desktop/RStudio_Analysis/scRNAseq_MicrogliaMarkers/6MO_MicrogliaMerge/6MO_MicrogliaMerge_FIRSTCLEAN.csv")
+
+##### CLUSTERS IDENTITIES #####
+cluster.id <- c("Microglia", "Microglia", "Microglia", "Artifact", "Epithelial cells", 
+                "Immune cells", "Microglia", "Immune cells", "Mixed")
+names(cluster.id) <- levels(MERGE_6M)
+MERGE_6M <- RenameIdents(MERGE_6M, cluster.id)
+
+DimPlot(MERGE_6M, reduction = "umap", pt.size= 0.5, label = TRUE, label.size=4.5)
+
+##### SUBSET MICROGLIA #####
+
+MERGE_6M <- subset(MERGE_6M, idents = c("Microglia"))
+
+MERGE_6M <- SCTransform(MERGE_6M, vars.to.regress = c("nCount_RNA", "nFeature_RNA"),
+                        variable.features.n = 500, verbose = FALSE)
+MERGE_6M <- RunPCA(MERGE_6M, verbose = FALSE)
+ElbowPlot(MERGE_6M, ndims = 50, reduction = "pca")
+MERGE_6M <- RunUMAP(MERGE_6M, dims = 1:30, n.neighbors= 50, min.dist= 0.01, 
+                    spread =1, verbose = FALSE)
+MERGE_6M <- FindNeighbors(MERGE_6M, dims = 1:10)
+MERGE_6M <- FindClusters(MERGE_6M, resolution = 0.1)
+
+DimPlot(MERGE_6M, reduction = "umap", pt.size= 0.5, label = TRUE, label.size = 4.5)
+markers <- FindAllMarkers(MERGE_6M, test.use = "wilcox",
+                          logfc.threshold = 0.2, verbose = T)
+
+write.csv(markers, file = "C:/Users/sarto/OneDrive/Desktop/scRNAseq/SECONDCLEAN.csv")
