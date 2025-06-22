@@ -8,9 +8,10 @@ library(dplyr)
 library(forcats)
 library(stringr)
 library(ggrepel)
+setwd("")
 
 ##### FIND MARKERS IN MICROGLIA MERGE #####
-load("C:/Users/sarto/OneDrive/Desktop/GeneOntology/6MO_MicrogliaMerge_SECONDCLEAN.RData")
+load("6MO_MicrogliaMerge_SECONDCLEAN.RData")
 markers <- FindAllMarkers(
   MERGE_6M,
   only.pos = TRUE,
