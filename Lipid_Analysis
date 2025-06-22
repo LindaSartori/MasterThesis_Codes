@@ -1,0 +1,93 @@
+##### LIBRARIES #####
+library(readxl)
+library(tidyverse)
+library(openxlsx)
+library(ggplot2)
+setwd("")
+
+#####IMPORT DATA#####
+lipid_genes <- read_excel("LIPID_GENE_LIST.xlsx")$genename
+merge_results <- read.csv("6MO_MicrogliaMerge_SECONDCLEAN.csv")
+
+##### MANAGE PVAL=0 (detection limit) #####
+merge_results <- merge_results %>%
+  mutate(
+    p_val = as.numeric(p_val),
+    p_val = ifelse(p_val == 0.000e+00, 1.0e-300, p_val)
+  )
+
+class(merge_results$avg_log2FC)
+
+##### FIND LIPID GENES IN MERGE #####
+significant_lipids <- merge_results %>%
+  filter(gene %in% lipid_genes) %>%
+  arrange(p_val, desc(abs(avg_log2FC)))
+x_max <- max(abs(merge_results$avg_log2FC))*1.1
+y_max <- max(-log10(merge_results$p_val)) *1.1
+
+##### EXAMPLE: CLUSTER 0 + VISUALIZATION #####
+
+filtered_c0 <- significant_lipids %>%
+  filter(
+    p_val < 0.05 &
+      abs(avg_log2FC) >= 0.25 & 
+      ((avg_log2FC>0 & pct.1>pct.2 ) | (avg_log2FC<0 & pct.2>pct.1)) &
+      (pct.1 > 0.1 | pct.2 > 0.1) &
+      cluster == 0
+  )
+
+label_data_c0 <- filtered_c0 %>%
+  group_by(direction = ifelse(avg_log2FC >0, "Upregulated", "Downregulated")) %>%
+  arrange(p_val) %>%
+  slice(1:10)
+
+ggplot(merge_results %>% filter(cluster == 0), aes(avg_log2FC, -log10(p_val))) + 
+  
+  geom_point(data = .%>% filter(!gene %in% lipid_genes),
+             aes(color = "Not lipid-related genes"), 
+             size = 1, 
+             alpha = 0.3
+  ) +
+  
+  geom_point(data = filtered_c0,
+             aes(color = ifelse(avg_log2FC > 0, "Upregulated", "Downregulated")), 
+             size = 1.5, 
+             alpha = 0.8
+  ) +
+  
+  geom_hline(
+    yintercept = -log10(0.05), linetype = "dashed", color = "grey50", linewidth = 0.5
+  ) +
+  
+  geom_vline(
+    xintercept = c(-0.6, 0.6), linetype = "dashed", color = "grey50"
+  ) +
+  
+  ggrepel::geom_text_repel(data = label_data_c0,
+                           aes(label = gene), 
+                           box.padding = 0.5,
+                           max.overlaps = 30,
+                           segment.color= "grey50",
+                           size = 4
+  ) +
+  scale_color_manual(name = "Gene Type", 
+                     values = c("Not lipid-related genes" = "grey70", "Upregulated" = "red", "Downregulated" = "blue"), 
+                     guide = guide_legend(
+                       title.position = "top",
+                       title.hjust = 0.5,
+                       override.aes = list (size = c(3, 3, 3))
+                     )
+  ) + 
+  
+  theme_minimal() +
+  theme(
+    legend.position = "right",
+    legend.title = element_text(face = "bold", hjust = 0.5),
+    plot.title = element_text(face = "bold", hjust = 0.5, size = 14)
+  ) +
+  coord_cartesian(ylim = c(0, 310), xlim = c(-x_max, x_max)) +
+  labs(
+    x = "avg_log2FC", 
+    y = "-log10(p_val)", 
+    title = "Lipid Genes in Microglia: Cluster 0"
+  )
