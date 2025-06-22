@@ -9,10 +9,9 @@ library(ggplot2)
 library(RColorBrewer)
 
 ##### LOAD DATASET, CREATE SEURAT OBJECTS#####
+#Example with TL9: scRNAseq data from 6mo mouse cerebral cortex, WT
 
-#TL9: scRNA data from 6mo mouse cerebral cortex, WT females
-
-GSE175546.data <- Read10X_h5 ("C:/Users/au764493/Desktop/RStudio_Analysis/GSE175546_RAW/GSM5341448_TL9_raw_feature_bc_matrix.h5",
+GSE175546.data <- Read10X_h5 ("GSE175546_RAW/GSM5341448_TL9_raw_feature_bc_matrix.h5",
                               use.names = TRUE, unique.features = TRUE)
 TL9 <- CreateSeuratObject(counts = GSE175546.data, project = "TL9", min.cells = 3, min.features = 500)
 
@@ -45,9 +44,9 @@ DimPlot(TL9, reduction = "umap", pt.size= 0.5, label = TRUE)
 
 markers <- FindAllMarkers(TL9, test.use = "wilcox",
                           logfc.threshold = 0.2, verbose = T)
-write.csv(markers, file = "C:/Users/au764493/Desktop/RStudio_Analysis/scRNAseq_InitialMarkers/TL9_InitialMarkers/TL9_InitialMarkers.csv")
+write.csv(markers, file = "TL9_InitialMarkers.csv")
 
-##### NAMING CLUSTERS IDENTITIES #####
+##### NAMING CLUSTERS IDENTITIES (after manual identification) #####
 cluster.id <- c("Astrocytes", "Oligodendrocytes", "Endothelial cells", 
  "Microglia", "Neurons", "Microglia", "Oligodendrocytes",
  "Endothelial cells", "Vascular endothelial cells", "Oligodendrocytes", "Immune cells", "Vascular endothelial cells", "Microglia",
