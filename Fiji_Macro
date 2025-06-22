@@ -1,0 +1,97 @@
+roiManager("Reset");
+run("Clear Results");
+
+// OPEN IMAGE AND CP3 ROI MASK
+open("/.../Image_B4.4");
+originalTitle = getTitle(); 
+roiManager("Open", "/.../Image_B4.4_rois.zip");
+nCells = roiManager("Count");
+print("Loaded " + nCells + " cell ROIs.");
+// Duplicate the original to ensure identical size/scale
+run("Duplicate...", "title=Labeled_Cells");
+selectImage("Labeled_Cells");
+run("16-bit");
+run("Select All");
+run("Clear"); 
+
+for (i = 0; i < nCells; i++) {
+    roiManager("Select", i);
+    setColor(i + 1); // Set grayscale intensity
+    run("Fill");
+}
+
+// MEASURE CELL AREAS
+selectImage("Labeled_Cells");
+cellArea = newArray(nCells + 1);
+width  = getWidth();
+height = getHeight();
+for (y = 0; y < height; y++) {
+    for (x = 0; x < width; x++) {
+        v = getPixel(x, y);  // 16-bit intensity
+        if (v > 0 && v <= nCells) {
+            cellArea[v]++;
+        }
+    }
+}
+// LOAD SMFISH ROIs
+roiManager("Reset"); 
+roiManager("Open", "/.../Image_B4.4_RSFISH_ROIs.zip");
+nDots = roiManager("Count");
+print("Loaded " + nDots + " dot ROIs.");
+
+// MAP DOTS ON CELL ROIs
+selectImage("Labeled_Cells");
+cellDotCount     = newArray(nCells + 1);
+cellDotIntensity = newArray(nCells + 1);
+cellDotSize      = newArray(nCells + 1);
+dotCountTemp     = newArray(nCells + 1); 
+// Debug to initialize counts
+for (c = 0; c <= nCells; c++) {
+    cellDotCount[c] = 0;
+    cellDotIntensity[c] = 0;
+    cellDotSize[c] = 0;
+    dotCountTemp[c] = 0;
+}
+for (d = 0; d < nDots; d++) {
+    roiManager("Select", d);
+    xs = newArray(); ys = newArray();
+    getSelectionCoordinates(xs, ys);
+    sumX = 0; sumY = 0;
+    nPoints = xs.length;
+    for (p = 0; p < nPoints; p++) {
+        sumX += xs[p];
+        sumY += ys[p];
+    }
+    cx = floor(sumX / nPoints);
+    cy = floor(sumY / nPoints);
+    cellID = getPixel(cx, cy); 
+    // Debug print for first 10 dots
+    if (d < 10) {
+        print("Dot " + d + " center at (" + cx + ", " + cy + "), cellID = " + cellID);
+    }
+    if (cellID > 0 && cellID <= nCells) {
+        cellDotCount[cellID]++;
+        cellDotIntensity[cellID] += dotIntensities[d];
+        cellDotSize[cellID]      += dotSizes[d];
+        dotCountTemp[cellID]++;
+    }
+}
+
+// WRITE RESULTS TABLE
+for (c = 1; c <= nCells; c++) {
+    row = c - 1;
+    setResult("Cell ID", row, c);
+    setResult("Cell Area", row, cellArea[c]);
+    setResult("Dot Count", row, cellDotCount[c]);
+    if (dotCountTemp[c] > 0) {
+       avgDotSize = cellDotSize[c]/dotCountTemp[c];
+    } else {
+       avgDotSize = 0;
+    }
+    setResult("Avg Dot Size", row, avgDotSize);
+    setResult("Total Dot Intensity", row, cellDotIntensity[c]);
+}
+updateResults();
+
+// SAVE
+saveAs("Results", "/.../Image_B4.4_CellSummary.csv");
