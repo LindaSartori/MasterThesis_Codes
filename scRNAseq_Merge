@@ -30,7 +30,7 @@ MERGE_6M <- FindClusters(MERGE_6M, resolution = 0.4)
 DimPlot(MERGE_6M, reduction = "umap", pt.size= 0.5, label = TRUE)
 
 MERGE_6M <- PrepSCTFindMarkers(MERGE_6M)
-markers <- FindAllMarkers(MERGE_6M, test.use = "wilcox", logfc.threshold = 0.5, 
+markers <- FindAllMarkers(MERGE_6M, test.use = "wilcox", logfc.threshold = 0.25, 
                           min.pct = 0.2, verbose = T)
 
 write.csv(markers, file = "6MO_MicrogliaMerge.csv")
@@ -53,12 +53,12 @@ MERGE_6M <- RunPCA(MERGE_6M, verbose = FALSE)
 ElbowPlot(MERGE_6M, ndims = 50, reduction = "pca")
 MERGE_6M <- RunUMAP(MERGE_6M, dims = 1:30, n.neighbors= 50, min.dist= 0.01, 
                spread =1, verbose = FALSE)
-MERGE_6M <- FindNeighbors(MERGE_6M, dims = 1:10)
+MERGE_6M <- FindNeighbors(MERGE_6M, dims = 1:20)
 MERGE_6M <- FindClusters(MERGE_6M, resolution = 0.3)
 
 DimPlot(MERGE_6M, reduction = "umap", pt.size= 0.5, label = TRUE, label.size=4.5)
 markers <- FindAllMarkers(MERGE_6M, test.use = "wilcox",
-                          logfc.threshold = 0.2, verbose = T)
+                          logfc.threshold = 0.25, verbose = T)
 
 write.csv(markers, file = "6MO_MicrogliaMerge_FIRSTCLEAN.csv")
 
@@ -85,6 +85,6 @@ MERGE_6M <- FindClusters(MERGE_6M, resolution = 0.1)
 
 DimPlot(MERGE_6M, reduction = "umap", pt.size= 0.5, label = TRUE, label.size = 4.5)
 markers <- FindAllMarkers(MERGE_6M, test.use = "wilcox",
-                          logfc.threshold = 0.2, verbose = T)
+                          logfc.threshold = 0.25, verbose = T)
 
 write.csv(markers, file = "6MO_MicrogliaMerge_SECONDCLEAN.csv")
