@@ -18,17 +18,14 @@ TL9 <- CreateSeuratObject(counts = GSE175546.data, project = "TL9", min.cells = 
 
 ##### FILTER nCOUNT#####
 TL9 <- subset(TL9, subset = nCount_RNA > 1000)
-#visualize nCount, nFeature 
-#VlnPlot(TL9, features = c("nFeature_RNA", "nCount_RNA"), ncol = 2)
 
 ##### PRE-PROCESSING: QC#####
-
 TL9[["percent.mt"]] <- PercentageFeatureSet(TL9, pattern = "^mt-")
 TL9[["percent.Rps"]] <- PercentageFeatureSet(TL9, pattern = "^Rps")
 TL9[["percent.Rpl"]] <- PercentageFeatureSet(TL9, pattern = "^Rpl")
-
 TL9 <- subset(TL9, subset = percent.mt <50)
 TL9 <- subset(TL9, subset = percent.Rps <25)
+TL9 <- subset(TL9, subset = percent.Rpl <25)
 
 ##### UMAP #####
 TL9 <- SCTransform(TL9, vars.to.regress = c("nCount_RNA", "nFeature_RNA"),
@@ -44,7 +41,7 @@ TL9 <- FindClusters(TL9, resolution = 0.3)
 DimPlot(TL9, reduction = "umap", pt.size= 0.5, label = TRUE)
 
 markers <- FindAllMarkers(TL9, test.use = "wilcox",
-                          logfc.threshold = 0.2, verbose = T)
+                          logfc.threshold = 0.25, verbose = T)
 write.csv(markers, file = "TL9_InitialMarkers.csv")
 
 ##### NAMING CLUSTERS IDENTITIES (after manual identification) #####
