@@ -15,7 +15,7 @@ load("6MO_MicrogliaMerge_SECONDCLEAN.RData")
 markers <- FindAllMarkers(
   MERGE_6M,
   only.pos = TRUE,
-  logfc.threshold = 0.1,
+  logfc.threshold = 0.25,
   min.pct = 0.1
 )
 
